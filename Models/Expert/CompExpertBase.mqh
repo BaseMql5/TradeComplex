@@ -18,6 +18,8 @@
 
 #include "../../Enums/ENUM_COMP_INIT_PHASE.mqh"
 #include "../../Enums/ENUM_USED_CHART_BUFFERS.mqh"
+#include "../Global/ChartBuffers/Models/ChartBuffers.mqh"
+#include "../Global/Storage/Models/Vector.mqh"
 
 /*=========================================== class ===========================================*/
 class CompExpertBase {
@@ -30,6 +32,7 @@ class CompExpertBase {
     CAccountInfo m_account;                  // object-deposit
     ENUM_ACCOUNT_MARGIN_MODE m_margin_mode;  // netting or hedging
     bool m_every_tick;                       // flag of starting the analysis from current (incomplete) bar
+    Vector<ChartBuffers *> *m_bufferSeries;  // Vector of the class of buffers of the chart for different timeframes
    private:
     /*------------------------------------------- Parameters -------------------------------------------*/
 

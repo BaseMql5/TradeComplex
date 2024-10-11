@@ -48,7 +48,7 @@ class ChartBuffers {
 /**================================================================================================
  * *                                      Normal   Constructor
  *================================================================================================**/
-ChartBuffers::ChartBuffers(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame) {
+ChartBuffers::ChartBuffers() {
 
 };
 
@@ -70,6 +70,4 @@ void ChartBuffers::init(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame
     m_lastCandleIndex = -1;
     m_isNewBar.SetSymbol(i_symbol);
     m_isNewBar.SetPeriod(i_timeFrame);
-    m_symbol = i_symbol;
-    m_timeframe = i_timeFrame;
 };
