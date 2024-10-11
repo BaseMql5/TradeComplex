@@ -19,16 +19,6 @@
 #include "../../Enums/ENUM_COMP_INIT_PHASE.mqh"
 #include "../../Enums/ENUM_USED_CHART_BUFFERS.mqh"
 
-/*====================================== Macro definitions ======================================*/
-//--- check the use of timeseries
-#define IS_OPEN_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_OPEN) != 0)
-#define IS_HIGH_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_HIGH) != 0)
-#define IS_LOW_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_LOW) != 0)
-#define IS_CLOSE_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_CLOSE) != 0)
-#define IS_SPREAD_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_SPREAD) != 0)
-#define IS_TIME_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_TIME) != 0)
-#define IS_TICK_VOLUME_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_TICK_VOLUME) != 0)
-#define IS_REAL_VOLUME_SERIES_USAGE ((m_used_series & COMP_USE_SERIES_REAL_VOLUME) != 0)
 /*=========================================== class ===========================================*/
 class CompExpertBase {
    protected:

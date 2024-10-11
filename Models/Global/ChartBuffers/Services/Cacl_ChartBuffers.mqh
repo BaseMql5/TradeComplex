@@ -14,27 +14,33 @@
  *================================================================================================**/
 /*=========================================== Includes ===========================================*/
 #include "../Models/ChartBuffers.mqh"
+
+/*====================================== Macro definitions ======================================*/
+//--- check the use of timeseries
+#define IS_OPEN_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_OPEN) != 0)
+#define IS_HIGH_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_HIGH) != 0)
+#define IS_LOW_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_LOW) != 0)
+#define IS_CLOSE_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_CLOSE) != 0)
+#define IS_SPREAD_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_SPREAD) != 0)
+#define IS_TIME_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_TIME) != 0)
+#define IS_TICK_VOLUME_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_TICK_VOLUME) != 0)
+#define IS_REAL_VOLUME_SERIES_USAGE ((m_usedSeries & COMP_USE_SERIES_REAL_VOLUME) != 0)
 /*=========================================== class ===========================================*/
 class Calc_ChartBuffers {
    private:
     /*------------------------------------------- Parameters -------------------------------------------*/
-    bool m_calcHigh;
-    bool m_calcLow;
-    bool m_calcOpen;
-    bool m_calcClose;
-    bool m_calcSpread;
-    bool m_calcTime;
     int m_chunkSize;
+    int m_usedSeries;
     /*------------------------------------------- Methods -------------------------------------------*/
 
    public:
     /*------------------------------------------- Parameters -------------------------------------------*/
     // Initialization method: initializes the arrays and copies historical data
-    bool init(const string i_symbol, const int i_numHistoricalCandles,
-              ChartBuffers &i_chartBuffers,
-              const ENUM_TIMEFRAMES i_timeFrame = PERIOD_M1,
-              const bool i_calcTime = true, const bool i_calcHigh = true, const bool i_calcLow = true, const bool i_calcOpen = true,
-              const bool i_calcClose = true, const bool i_calcSpread = true, const int i_chunkSize = 100);
+    bool
+    init(const string i_symbol, const int i_numHistoricalCandles,
+         ChartBuffers &i_chartBuffers,
+         const ENUM_TIMEFRAMES i_timeFrame = PERIOD_M1,
+         const int i_usedSeries, const int i_chunkSize = 100);
 
     // Update method: updates the arrays with the new data
     bool update(ChartBuffers &i_chartBuffers);
@@ -72,13 +78,8 @@ Calc_ChartBuffers::~Calc_ChartBuffers() {
 bool Calc_ChartBuffers::init(const string i_symbol, const int i_numHistoricalCandles,
                              ChartBuffers &i_chartBuffers,
                              const ENUM_TIMEFRAMES i_timeFrame,
-                             const bool i_calcTime, const bool i_calcHigh, const bool i_calcLow, const bool i_calcOpen,
-                             const bool i_calcClose, const bool i_calcSpread, const int i_chunkSize) {
-    i_chartBuffers.m_isNewBar.SetSymbol(i_symbol);
-    i_chartBuffers.m_isNewBar.SetPeriod(i_timeFrame);
-    i_chartBuffers.m_symbol = i_symbol;
+                             const int i_usedSeries, const int i_chunkSize) : {
     m_chunkSize = i_chunkSize;
-    i_chartBuffers.m_timeframe = i_timeFrame;
     int availableCandles = Bars(i_chartBuffers.m_symbol, i_chartBuffers.m_timeframe);  // Get the number of available candles
     int candlesToCopy = MathMin(i_numHistoricalCandles, availableCandles);
     i_chartBuffers.m_ratesTotal = candlesToCopy;
