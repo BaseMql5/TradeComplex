@@ -32,25 +32,18 @@ class Calc_ChartBuffers {
     /*------------------------------------------- Parameters -------------------------------------------*/
     int m_chunkSize;
     int m_usedSeries;
+    int m_numHistoricalCandles;
     /*------------------------------------------- Methods -------------------------------------------*/
 
    public:
     /*------------------------------------------- Parameters -------------------------------------------*/
-    // Initialization method: initializes the arrays and copies historical data
-    bool init(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame,
-              ChartBuffers &i_chartBuffers,
-              const int i_numHistoricalCandles, const int i_usedSeries,
-              const int i_chunkSize = 100);
-    bool init(const string &i_symbols[], const ENUM_TIMEFRAMES &i_timeFrame[],
-              Vector<ChartBuffers *> *i_chartBuffers, const int i_numHistoricalCandles, const int i_usedSeries,
-              const int i_chunkSize = 100);
-
+    bool init(ChartBuffers &i_chartBuffers);
     // Update method: updates the arrays with the new data
     bool update(ChartBuffers &i_chartBuffers);
     bool update(Vector<ChartBuffers *> *i_chartBuffers);
     /*------------------------------------------- Methods -------------------------------------------*/
     //*  Constructor
-    Calc_ChartBuffers();
+    Calc_ChartBuffers(const int i_numHistoricalCandles, const int i_usedSeries, const int i_chunkSize = 100) : m_numHistoricalCandles(i_numHistoricalCandles), m_usedSeries(i_usedSeries), m_chunkSize(i_chunkSize) {};
 
     //* Destructor
     ~Calc_ChartBuffers();
@@ -58,15 +51,7 @@ class Calc_ChartBuffers {
 };
 
 /**================================================================================================
- * *                                      Normal   Constructor
- *================================================================================================**/
-Calc_ChartBuffers::Calc_ChartBuffers() {
-
-};
-
-/**================================================================================================
  * *                                  Normal Destructor
- *
  *================================================================================================**/
 Calc_ChartBuffers::~Calc_ChartBuffers() {
 
@@ -79,17 +64,10 @@ Calc_ChartBuffers::~Calc_ChartBuffers() {
   i_calcLow, i_calcOpen, i_calcClose, i_calcSpread, i_chunkSize
  *@return false if failed to initilize
  *================================================================================================**/
-bool Calc_ChartBuffers::init(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame,
-                             ChartBuffers &i_chartBuffers,
-                             const int i_numHistoricalCandles, const int i_usedSeries,
-                             const int i_chunkSize = 100) {
-    //* init ChartBuffers
-    i_chartBuffers.init(i_symbol, i_timeFrame);
-    //* init Calc_ChartBuffers
-    m_chunkSize = i_chunkSize;
-    m_usedSeries = i_usedSeries;
+bool Calc_ChartBuffers::init(ChartBuffers &i_chartBuffers) {
+    i_chartBuffers.m_isInitilized = true;
     int availableCandles = Bars(i_chartBuffers.m_symbol, i_chartBuffers.m_timeframe);  // Get the number of available candles
-    int candlesToCopy = MathMin(i_numHistoricalCandles, availableCandles);
+    int candlesToCopy = MathMin(m_numHistoricalCandles, availableCandles);
     i_chartBuffers.m_ratesTotal = candlesToCopy;
     // Resize arrays to hold the historical data + m_chunkSize for future candles
     if (IS_HIGH_BUFFER_USAGE) ArrayResize(i_chartBuffers.high, candlesToCopy + m_chunkSize);
@@ -149,34 +127,15 @@ bool Calc_ChartBuffers::init(const string i_symbol, const ENUM_TIMEFRAMES i_time
 };
 
 /**================================================================================================
- **                                      init ** overloading
- *?  Initilize data to calculate chart buffers in a vector of ChartBuffers
- *@param i_symbol, i_numHistoricalCandles, i_chartBuffers, i_timeFrame, i_calcTime, i_calcHigh,
-  i_calcLow, i_calcOpen, i_calcClose, i_calcSpread, i_chunkSize
- *@return false if failed to initilize
- *================================================================================================**/
-bool Calc_ChartBuffers::init(const string &i_symbols[], const ENUM_TIMEFRAMES &i_timeFrame[],
-                             Vector<ChartBuffers *> *i_chartBuffers, const int i_numHistoricalCandles, const int i_usedSeries,
-                             const int i_chunkSize = 100) {
-    //* check sizes
-    if (ArraySize(i_symbols) != ArraySize(i_timeFrame) || ArraySize(i_symbols) != i_chartBuffers.size()) {
-        Print("Error in Calc_ChartBuffers::init: Sizes of input arrays do not match");
-        return false;
-    }
-    bool result = true;
-    for (int i = 0; i < i_chartBuffers.size(); i++) {
-        result *= init(i_symbols[i], i_timeFrame[i], i_chartBuffers[i], i_numHistoricalCandles, i_usedSeries, i_chunkSize);
-    }
-    return result;
-};
-
-/**================================================================================================
  **                                      update
  *?  Update data to calculate chart buffers
  *@return false if failed to update
  *================================================================================================**/
 // UpdateData method: updates arrays with new ticks and resizes them if necessary
 bool Calc_ChartBuffers::update(ChartBuffers &i_chartBuffers) {
+    if (i_chartBuffers.m_isInitilized == false) {
+        init(&i_chartBuffers);
+    }
     // set result to true
     bool result = true;
     // Fetch the current bar's time (the most recent candle)

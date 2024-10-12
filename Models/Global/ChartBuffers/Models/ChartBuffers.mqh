@@ -20,7 +20,6 @@
 class ChartBuffers {
    private:
     /*------------------------------------------- Parameters -------------------------------------------*/
-
     /*------------------------------------------- Methods -------------------------------------------*/
 
    public:
@@ -33,12 +32,11 @@ class ChartBuffers {
     int m_ratesTotal;
     string m_symbol;
     CisNewBar m_isNewBar;
-
-    void init(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame);
+    bool m_isInitilized;
 
     /*------------------------------------------- Methods -------------------------------------------*/
     //*  Constructor
-    ChartBuffers();
+    ChartBuffers(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame);
 
     //* Destructor
     ~ChartBuffers();
@@ -48,8 +46,13 @@ class ChartBuffers {
 /**================================================================================================
  * *                                      Normal   Constructor
  *================================================================================================**/
-ChartBuffers::ChartBuffers() {
-
+ChartBuffers::ChartBuffers(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame) {
+    m_isInitilized = false;
+    m_symbol = i_symbol;
+    m_timeframe = i_timeFrame;
+    m_lastCandleIndex = -1;
+    m_isNewBar.SetSymbol(i_symbol);
+    m_isNewBar.SetPeriod(i_timeFrame);
 };
 
 /**================================================================================================
@@ -58,16 +61,4 @@ ChartBuffers::ChartBuffers() {
  *================================================================================================**/
 ChartBuffers::~ChartBuffers() {
 
-};
-
-/**================================================================================================
- **                                      init
- *?  initlize the buffers
- *================================================================================================**/
-void ChartBuffers::init(const string i_symbol, const ENUM_TIMEFRAMES i_timeFrame) {
-    m_symbol = i_symbol;
-    m_timeframe = i_timeFrame;
-    m_lastCandleIndex = -1;
-    m_isNewBar.SetSymbol(i_symbol);
-    m_isNewBar.SetPeriod(i_timeFrame);
 };

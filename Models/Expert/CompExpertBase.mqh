@@ -19,19 +19,19 @@
 #include "../../Enums/ENUM_COMP_INIT_PHASE.mqh"
 #include "../../Enums/ENUM_USED_CHART_BUFFERS.mqh"
 #include "../Global/ChartBuffers/Models/ChartBuffers.mqh"
+#include "../Global/General/Services/GlobalMethods.mqh"
 #include "../Global/Storage/Models/Vector.mqh"
-
 /*=========================================== class ===========================================*/
-class CompExpertBase {
+class CompExpertBase : public GlobalMethods {
    protected:
     /*------------------------------------------- Parameters -------------------------------------------*/
     ulong m_magic;                           // expert magic number
-    ENUM_COMP_INIT_PHASE m_init_phase;       // the phase (stage) of initialization of object
-    CSymbolInfo *m_symbol;                   // pointer to the object-symbol
-    ENUM_TIMEFRAMES m_period;                // work timeframe
+    ENUM_COMP_INIT_PHASE m_initPhase;        // the phase (stage) of initialization of object //? what for?
+    Vector<CSymbolInfo *> *m_symbols;        // Vector of pointers to the object-symbols
+    int m_periodFlags;                       // work timeframes, know if expert will work on one or more timeframes
     CAccountInfo m_account;                  // object-deposit
-    ENUM_ACCOUNT_MARGIN_MODE m_margin_mode;  // netting or hedging
-    bool m_every_tick;                       // flag of starting the analysis from current (incomplete) bar
+    ENUM_ACCOUNT_MARGIN_MODE m_marginMode;   // netting or hedging
+    bool m_everyTick;                        // flag of starting the analysis from current (incomplete) bar
     Vector<ChartBuffers *> *m_bufferSeries;  // Vector of the class of buffers of the chart for different timeframes
    private:
     /*------------------------------------------- Parameters -------------------------------------------*/
@@ -47,6 +47,11 @@ class CompExpertBase {
 
     //* Destructor
     ~CompExpertBase();
+
+    //* Initialization of the expert
+    virtual void Init(const string i_symbol, const int i_timeFramesFlag);      //? why used virtual in here?
+    virtual void Init(const string &i_symbols[], const int i_timeFramesFlag);  //? why used virtual in here?
+
     /*------------------------------------------- Getters -------------------------------------------*/
 };
 
@@ -63,4 +68,25 @@ CompExpertBase::CompExpertBase() {
  *================================================================================================**/
 CompExpertBase::~CompExpertBase() {
 
+};
+
+/**================================================================================================
+ **                                      Init
+ *?  initlize the expert
+ * overload 1 : use one string as one symbol
+ *================================================================================================**/
+void CompExpertBase::Init(const string i_symbol, const int i_timeFramesFlag) {
+    m_symbols = new Vector<CSymbolInfo *>();
+    m_symbols.Add(new CSymbolInfo());
+    m_periodFlags = i_timeFramesFlag;
+    m_initPhase = COMP_INIT_PHASE_FIRST;  //.! what is for? Not used yet
+    bool activeFts[21];
+
+    convertUsedTimeFramesFlag(i_timeFramesFlag, activeFts);
+    for (int i = 0; i < 21; ++i) {
+        if (activeFts[i]) {
+            m_bufferSeries.Add(new ChartBuffers());
+            m_bufferSeries[m_bufferSeries.size() - 1].init(i_symbol, getTimeFrameByIndex(i));
+        }
+    }
 };
