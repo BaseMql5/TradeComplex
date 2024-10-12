@@ -26,7 +26,7 @@ class CompExpertBase : public GlobalMethods {
    protected:
     /*------------------------------------------- Parameters -------------------------------------------*/
     ulong m_magic;                           // expert magic number
-    ENUM_COMP_INIT_PHASE m_initPhase;        // the phase (stage) of initialization of object //? what for?
+    ENUM_COMP_INIT_PHASE m_initPhase;        // the phase (stage) of initialization of object //.! what for?
     Vector<CSymbolInfo *> *m_symbols;        // Vector of pointers to the object-symbols
     int m_periodFlags;                       // work timeframes, know if expert will work on one or more timeframes
     CAccountInfo m_account;                  // object-deposit
@@ -49,8 +49,8 @@ class CompExpertBase : public GlobalMethods {
     ~CompExpertBase();
 
     //* Initialization of the expert
-    virtual void Init(const string i_symbol, const int i_timeFramesFlag);      //? why used virtual in here?
-    virtual void Init(const string &i_symbols[], const int i_timeFramesFlag);  //? why used virtual in here?
+    virtual bool Init(const string i_symbol, const int i_timeFramesFlag);      //? why used virtual in here?
+    virtual bool Init(const string &i_symbols[], const int i_timeFramesFlag);  //? why used virtual in here?
 
     /*------------------------------------------- Getters -------------------------------------------*/
 };
@@ -67,7 +67,10 @@ CompExpertBase::CompExpertBase() {
  *
  *================================================================================================**/
 CompExpertBase::~CompExpertBase() {
-
+    m_symbols.Clear();
+    m_bufferSeries.Clear();
+    delete m_symbols;
+    delete m_bufferSeries;
 };
 
 /**================================================================================================
@@ -75,18 +78,91 @@ CompExpertBase::~CompExpertBase() {
  *?  initlize the expert
  * overload 1 : use one string as one symbol
  *================================================================================================**/
-void CompExpertBase::Init(const string i_symbol, const int i_timeFramesFlag) {
+bool CompExpertBase::Init(const string i_symbol, const int i_timeFramesFlag) {
     m_symbols = new Vector<CSymbolInfo *>();
-    m_symbols.Add(new CSymbolInfo());
+    //--- check of pointer
+    if (m_symbols == NULL) {
+        Print(__FUNCTION__ + ": error of Creating Vector ");
+        return (false);
+    }
+    CSymbolInfo *m_symbol = new CSymbolInfo;
+    //--- check of pointer
+    if (m_symbol == NULL) {
+        Print(__FUNCTION__ + ": error of creating  symbol");
+        return (false);
+    }
+    if (!m_symbol.Name(i_symbol)) {
+        //--- failed to initialize the symbol
+        delete m_symbol;
+        return (false);
+    }
+    m_symbols.Add(m_symbol);
+
+    // set the timeframes
     m_periodFlags = i_timeFramesFlag;
     m_initPhase = COMP_INIT_PHASE_FIRST;  //.! what is for? Not used yet
     bool activeFts[21];
-
     convertUsedTimeFramesFlag(i_timeFramesFlag, activeFts);
     for (int i = 0; i < 21; ++i) {
-        if (activeFts[i]) {
-            m_bufferSeries.Add(new ChartBuffers());
-            m_bufferSeries[m_bufferSeries.size() - 1].init(i_symbol, getTimeFrameByIndex(i));
+        if (!activeFts[i]) {
+            continue;
+        }
+        ChartBuffers *m_bufferSeri = new ChartBuffers(i_symbol, getTimeFrameByIndex(i));
+        //--- check of pointer
+        if (m_bufferSeri == NULL) {
+            Print(__FUNCTION__ + ": error of creating  ChartBuffers");
+            return (false);
+        }
+        m_bufferSeries.Add(m_bufferSeri);
+    }
+    return true;
+};
+
+/**================================================================================================
+ **                                      Init
+ *?  initlize the expert
+ * overload 2 : use array of strings as symbols
+ *================================================================================================**/
+bool CompExpertBase::Init(const string &i_symbols[], const int i_timeFramesFlag) {
+    m_symbols = new Vector<CSymbolInfo *>();
+    //--- check of pointer
+    if (m_symbols == NULL) {
+        Print(__FUNCTION__ + ": error of Creating Vector ");
+        return (false);
+    }
+    for (int i = 0; i < ArraySize(i_symbols); ++i) {
+        CSymbolInfo *m_symbol = new CSymbolInfo;
+        //--- check of pointer
+        if (m_symbol == NULL) {
+            Print(__FUNCTION__ + ": error of creating  symbol");
+            return (false);
+        }
+        if (!m_symbol.Name(i_symbols[i])) {
+            //--- failed to initialize the symbol
+            delete m_symbol;
+            return (false);
+        }
+        m_symbols.Add(m_symbol);
+    }
+
+    // set the timeframes
+    m_periodFlags = i_timeFramesFlag;
+    m_initPhase = COMP_INIT_PHASE_FIRST;  //.! what is for? Not used yet
+    bool activeFts[21];
+    convertUsedTimeFramesFlag(i_timeFramesFlag, activeFts);
+    for (int i = 0; i < 21; ++i) {
+        if (!activeFts[i]) {
+            continue;
+        }
+        for (int j = 0; j < ArraySize(i_symbols); ++j) {
+            ChartBuffers *m_bufferSeri = new ChartBuffers(i_symbols[j], getTimeFrameByIndex(i));
+            //--- check of pointer
+            if (m_bufferSeri == NULL) {
+                Print(__FUNCTION__ + ": error of creating  ChartBuffers");
+                return (false);
+            }
+            m_bufferSeries.Add(m_bufferSeri);
         }
     }
+    return true;
 };
