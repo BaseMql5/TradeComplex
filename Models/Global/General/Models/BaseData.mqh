@@ -34,4 +34,5 @@ class BaseData {
     ENUM_TIMEFRAMES time_Frame(void) { return m_time_frame; };
     void time_Frame(ENUM_TIMEFRAMES i_time_frame) { m_time_frame = i_time_frame; };
     long chart_Id(void) { return m_chart_id; };
+    void chart_Id(long i_chart_id) { m_chart_id = i_chart_id; };
 };
