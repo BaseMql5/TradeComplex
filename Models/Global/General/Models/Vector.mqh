@@ -55,7 +55,7 @@ class Vector {
         pushBack(item);
     }
 
-    void delete(int index) {
+    void Delete(int index) {
         if (index >= m_size)
             DebugBreak();
         delete m_data[index];
